@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Bindable Templates</title>
+	<style>
+		#d1, #d2, #d3 {
+			border: 1px solid;
+			margin: 10px;
+			padding: 10px 15px;
+		}
+		[data-name]::after {
+			display: inline-block;
+			border: 1px solid blue;
+			color: red;
+			margin: 5px;
+			padding: 10px 15px;
+		}
+		[data-name]::after {
+			content: "Attribute [data-name]: " attr(data-name);
+		}
+		[data-age]::after {
+			content: "Attribute [data-age]: " attr(data-age);
+		}
+	</style>
+	<script src="bindable.js"></script>
+</head>
+<body>
+	<div id="d1">
+		<b>Date:</b> {{date}}
+		<br />
+		<b>Readable Date:</b> {{date@readable}}
+	</div>
+	<div id='d2'>
+		Name: {{name}}; Age: {{age}};
+		<div>
+			Name UpperCase: <b>{{name@upper}}</b>; Age: <b>{{age}}</b>;
+		</div>
+		<div>
+			Data: {{info}}
+			<br />
+			Function: {{func}}
+		</div>
+		<div data-name="NameUpperCase: {{name@upper}}; Age: {{age}};"></div>
+		<span data-name="{{name}}"></span>
+		<br />
+		{{msg}}
+	</div>
+	<div id="d3">
+		<h3>Later Binding</h3>
+		Name: {{name}}
+		<span data-name="{{name}}-{{age}}-test"></span>
+		<div>Welcome <b data-name="{{name}}">{{name@upper}}</b></div>
+		{{msg}}
+	</div>
+	<script>
+		let manager= new Bindable(document.querySelector('#d1'), document.querySelector('#d2'));
+		let v = manager.values;
+		manager.addFormatter('name', 'upper', v => (new String(v)).toUpperCase());
+		manager.addFormatter('date', 'readable', v => {
+			let d = Date.parse(v);
+			if(isNaN(d)) {
+				d = new Date();
+			}
+			return new Intl.DateTimeFormat('en-GB', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric'
+			}).format(d);
+		});
+		v.name = 'Krishna';
+		v.date = '2021-01-01';
+		v.info = {a : 10, b : 20};
+		v.func = Math.random;
+		v.age = 200;
+		const msg = document.createElement('b');
+		msg.innerHTML = 'Replacing TextNode with a HTMLElement';
+		v.msg = msg;
+
+
+		// Later binding
+		manager.bindElements(document.querySelector('#d3'));
+
+		// All keys
+		console.log('All keys', manager.keys);
+	</script>
+</body>
+</html>
