@@ -43,6 +43,12 @@ const Bindable = (function() {
 				case 'string':
 					return value;
 				case 'object':
+					if(value instanceof HTMLElement) {
+						return value.textContent;
+					}
+					if(value instanceof Text) {
+						return value.nodeValue;
+					}
 					return JSON.stringify(value);
 				case 'function':
 					return TargetStore.__valueToString(value());
