@@ -1,7 +1,7 @@
 /*
 Author: Anshu Krishna
 Contact: anshu.krishna5@gmail.com
-Date: 19-Mar-2021
+Date: 07-May-2021
 */
 const Bindable = (function() {
 	class TargetStore {
@@ -189,6 +189,17 @@ const Bindable = (function() {
 	}
 	class Bindable {
 		constructor(...elements) {
+			Object.defineProperties(this, {
+				__values: {
+					value: {}
+				},
+				__ts: {
+					value : new TargetStore
+				},
+				__formatters: {
+					value: {}
+				}
+			});
 			this.__ts.manager = this;
 			Object.defineProperties(this, {
 				__valuesProxy : {
@@ -293,17 +304,6 @@ const Bindable = (function() {
 			this.__updateValue(`${prop}@${name}`);
 		}
 	}
-	Object.defineProperties(Bindable.prototype, {
-		__values: {
-			value: {}
-		},
-		__ts: {
-			value : new TargetStore
-		},
-		__formatters: {
-			value: {}
-		}
-	});
 
 	return Bindable;
 })();
