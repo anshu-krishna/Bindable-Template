@@ -1,0 +1,7 @@
+{
+  "name": "bindable-template",
+  "version": "2.0",
+  "description": "A library for one-way DOM binding",
+  "author": "Anshu Krishna <anshu.krishna@gmail.com>",
+  "license": "MIT"
+}

@@ -23,25 +23,38 @@
 			content: "Attribute [data-age]: " attr(data-age);
 		}
 	</style>
-	<script src="bindable.js"></script>
 </head>
 <body>
 	<div id="d1">
+		{{ time }}
+		<br />
 		<b>Date:</b> {{date}}
 		<br />
-		<b>Readable Date:</b> {{date@readable}}
+		<b>Readable Date:</b> {{ @readableDate(date) }}
 	</div>
 	<div id='d2'>
 		Name: {{name}}; Age: {{age}};
 		<div>
-			Name UpperCase: <b>{{name@upper}}</b>; Age: <b>{{age}}</b>;
+			Name UpperCase: <b>{{ name.toUpperCase() }}</b>; Age: <b>{{age}}</b>;
 		</div>
 		<div>
 			Data: {{info}}
 			<br />
-			Function: {{func}}
+			Global Function: {{
+				/* Comments are allowed inside a expression. */
+				#Math.random() // This returns random floats [0, 1];
+			}}
+			<br />
+			Local Function: {{
+				#parseInt(@mul(#Math.random(), 100)) // This returns random integers [0, 100]
+			}}
+			<br />
+			Delayed Function: {{
+				// Async functions are allowed;
+				@delayedInt(1000)
+			}}
 		</div>
-		<div data-name="NameUpperCase: {{name@upper}}; Age: {{age}}; Msg: {{msg}}"></div>
+		<div data-name="NameUpperCase: {{name.toUpperCase()}}; Age: {{age}}; Msg: {{msg}}"></div>
 		<span data-name="{{name}}"></span>
 		<br />
 		{{msg}}
@@ -49,40 +62,55 @@
 	<div id="d3">
 		<h3>Later Binding</h3>
 		Name: {{name}}
-		<span data-name="{{name}}-{{age}}-test"></span>
-		<div>Welcome <b data-name="{{name}}">{{name@upper}}</b></div>
-		{{msg}}
+		<span data-name="{{ @join('-', name, age, 'test') }}"></span>
+		<div>Welcome <b data-name="{{name}}">{{name.toUpperCase()}}</b></div>
 	</div>
-	<script>
-		let manager= new Bindable(document.querySelector('#d1'), document.querySelector('#d2'));
-		let v = manager.values;
-		manager.addFormatter('name', 'upper', v => (new String(v)).toUpperCase());
-		manager.addFormatter('date', 'readable', v => {
-			let d = Date.parse(v);
-			if(isNaN(d)) {
-				d = new Date();
-			}
+	<script type="module">
+		import { HTML } from 'https://cdn.jsdelivr.net/gh/anshu-krishna/HTML-Tagged-Template-Literals@3.0.1/html-ttl.min.js';
+		import { Bindable } from './bindable.js';
+
+		const manager = new Bindable(document.querySelector('#d1'), document.querySelector('#d2'));
+		const { values, funcs } = manager;
+		
+		funcs.readableDate = function (val) {
+			const d = Date.parse(val);
+			if(isNaN(d)) { return 'Invalid date'; }
 			return new Intl.DateTimeFormat('en-GB', {
 				day: '2-digit',
 				month: 'short',
 				year: 'numeric'
 			}).format(d);
-		});
-		v.name = 'Krishna';
-		v.date = '2021-01-01';
-		v.info = {a : 10, b : 20};
-		v.func = Math.random;
-		v.age = 200;
-		const msg = document.createElement('b');
-		msg.innerHTML = 'Replacing TextNode with a HTMLElement';
-		v.msg = msg;
+		};
+		funcs.delayedInt = async function (delay) {
+			await new Promise(resolve => setTimeout(resolve, delay));
+			return parseInt(Math.random() * 100);
+		};
 
+		values.name = 'Krishna';
+		values.date = '2022-05-19';
+		values.info = {a : 10, b : 20};
+		values.age = 200;
+		values.msg = HTML`<b>Replacing TextNode with a HTMLElement</b>`;
+
+		function updateTime() {
+			values.time = (new Intl.DateTimeFormat('en-GB', {
+				hour: '2-digit',
+				minute: '2-digit',
+				second:'2-digit',
+				hour12: true
+			})).format(new Date);
+		}
+		updateTime();
+
+		setInterval(() => {
+			updateTime();
+		}, 1000);
 
 		// Later binding
-		manager.bindElements(document.querySelector('#d3'));
+		manager.bind(document.querySelector('#d3'));
 
 		// All keys
-		console.log('All keys', manager.keys);
+		console.log('All keys', Object.keys(values));
 	</script>
 </body>
 </html>
